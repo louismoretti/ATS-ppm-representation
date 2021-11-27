@@ -1,5 +1,9 @@
 import tkinter
 import numpy
+import threading
+import time
+
+
 
 num_room = int(input("Combien veut-tu de classe ?"))
 room_list = []
@@ -45,6 +49,15 @@ class Classroom():
       self.door2 = my_canvas.create_line( 300 + self.decalage, 450, 400 + self.decalage, 450, fill="black")
       tkinter.Button(root, text ="Open / Close door", command = self.open_door).place(x= 300 + self.decalage, y= 460)
 
+      # jauge
+      self.green = my_canvas.create_rectangle(70 + self.decalage, 320, 130 + self.decalage, 420, fill='green', outline='green')
+      self.yellow = my_canvas.create_rectangle(70 + self.decalage, 250, 130 + self.decalage, 320, fill='yellow', outline='yellow')
+      self.orange = my_canvas.create_rectangle(70 + self.decalage, 200, 130 + self.decalage, 250, fill='orange', outline='orange')
+      self.red = my_canvas.create_rectangle(70 + self.decalage, 170, 130 + self.decalage, 200, fill='red', outline='red')
+      self.black = my_canvas.create_rectangle(70 + self.decalage, 140, 130 + self.decalage, 170, fill='black', outline='black')
+      
+      self.white = my_canvas.create_rectangle(70 + self.decalage, 140, 130 + self.decalage, 370, fill= background, outline= background)
+
       # ppm
       self.ppm = 500       # ppm at begening
       self.ppm_start = 0
@@ -65,6 +78,7 @@ class Classroom():
          self.window3 = my_canvas.create_line( 100 + self.decalage, 50, 201 + self.decalage, 50, fill="black")
       self.window_open = not self.window_open
 
+
    def open_door(self):
       if not self.door_open:
          self.door1 = my_canvas.create_line( 300 + self.decalage, 450, 400 + self.decalage, 450, fill="white")
@@ -74,17 +88,13 @@ class Classroom():
          self.door2 = my_canvas.create_line( 300 + self.decalage, 450, 400 + self.decalage, 450, fill="black")
       self.door_open = not self.door_open
 
+
    def jauge (self):
       ppm_mean = int( self.ppm/10 + 0.5) # starts at 500 ppm
       ppm_mean = max(min(300, ppm_mean), 0)  # limit number between 0 & 300
 
-      self.green = my_canvas.create_rectangle(70 + self.decalage, 320, 130 + self.decalage, 420, fill='green', outline='green')
-      self.yellow = my_canvas.create_rectangle(70 + self.decalage, 250, 130 + self.decalage, 320, fill='yellow', outline='yellow')
-      self.orange = my_canvas.create_rectangle(70 + self.decalage, 200, 130 + self.decalage, 250, fill='orange', outline='orange')
-      self.red = my_canvas.create_rectangle(70 + self.decalage, 170, 130 + self.decalage, 200, fill='red', outline='red')
-      self.black = my_canvas.create_rectangle(70 + self.decalage, 140, 130 + self.decalage, 170, fill='black', outline='black')
-
-      self.white = my_canvas.create_rectangle(70 + self.decalage, 140, 130 + self.decalage, 420 - ppm_mean, fill= background, outline= background)
+      my_canvas.coords( self.white, 70 + self.decalage, 140, 130 + self.decalage, 420 - ppm_mean)
+      root.update()
 
    def ppm_func(self):
       time_mutiplicator = 1
@@ -128,13 +138,19 @@ class Classroom():
 for num in range(num_room):
    room_list.append(Classroom(num))
 
-# Update loop
-def update():
-   for num in range(num_room):
-      room_list[num].ppm_func()
-   # root.after(1000, update)    # every second
-   root.after(100, update)   # every 100ms
-update()
+
+
+def update(room):
+   while True:
+      room.ppm_func()
+      time.sleep(0.1)   # refresh every 100 ms
+
+
+def launch_update_thread():
+   for room in room_list:
+      threading.Thread(target=update, args=(room,) ).start()
+
+threading.Thread(target=launch_update_thread).start()
 
 
 
