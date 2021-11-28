@@ -143,7 +143,7 @@ for num in range(num_room):
 def update(room):
    while True:
       room.ppm_func()
-      time.sleep(0.01)   # refresh every 100 ms
+      time.sleep(0.01)   # refresh every 10 ms
 
 
 def launch_update_thread():
