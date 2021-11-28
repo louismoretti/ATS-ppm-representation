@@ -18,7 +18,7 @@ canvas_height = 500
 my_canvas = tkinter.Canvas(root, width=canvas_width, height=canvas_height, bg=background)
 my_canvas.pack()
 
-
+time_mutiplicator = 0.1
 
 
 
@@ -97,7 +97,7 @@ class Classroom():
       root.update()
 
    def ppm_func(self):
-      time_mutiplicator = 1
+      global time_mutiplicator
 
       if self.window_open and self.door_open:
          if self.ppm_start == 0:
@@ -143,7 +143,7 @@ for num in range(num_room):
 def update(room):
    while True:
       room.ppm_func()
-      time.sleep(0.1)   # refresh every 100 ms
+      time.sleep(0.01)   # refresh every 100 ms
 
 
 def launch_update_thread():
