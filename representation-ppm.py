@@ -18,7 +18,7 @@ canvas_height = 500
 my_canvas = tkinter.Canvas(root, width=canvas_width, height=canvas_height, bg=background)
 my_canvas.pack()
 
-time_mutiplicator = 0.1
+time_mutiplicator = 0.05
 
 
 
@@ -91,7 +91,7 @@ class Classroom():
 
    def jauge (self):
       ppm_mean = int( self.ppm/10 + 0.5) # starts at 500 ppm
-      ppm_mean = max(min(300, ppm_mean), 0)  # limit number between 0 & 300
+      ppm_mean = max(min(300, ppm_mean), 0)  # limit number between 0 & 300 px equal to 3000 ppm
 
       my_canvas.coords( self.white, 70 + self.decalage, 140, 130 + self.decalage, 420 - ppm_mean)
       root.update()
@@ -142,8 +142,14 @@ for num in range(num_room):
 
 def update(room):
    while True:
+
+      start = time.time()
+
       room.ppm_func()
-      time.sleep(0.01)   # refresh every 10 ms
+
+      end = time.time()
+
+      time.sleep(int(abs(0.01 - (end - start)) * 10000000) / 10000000 )   # reload every 10 ms minus the execution times of the function rounded to 0.0000001 seconds
 
 
 def launch_update_thread():
@@ -154,4 +160,4 @@ threading.Thread(target=launch_update_thread).start()
 
 
 
-root.mainloop() 
+root.mainloop()
