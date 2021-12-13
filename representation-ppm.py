@@ -9,7 +9,7 @@ num_room = int(input("Combien veut-tu de classe ?"))
 room_list = []
 
 root = tkinter.Tk()
-root.title('Test canvas')
+root.title('Représentation ppm')
 root.geometry(f"{100 + num_room * 400}x500")
 
 background = 'white'
