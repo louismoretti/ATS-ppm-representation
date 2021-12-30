@@ -5,20 +5,25 @@ import time
 
 
 
-num_room = int(input("Combien veut-tu de classe ?"))
+nb_room = int(input("Combien veut-tu de classe ?"))
 room_list = []
+
+width = 100 + nb_room * 400
+height = 700
 
 root = tkinter.Tk()
 root.title('Représentation ppm')
-root.geometry(f"{100 + num_room * 400}x500")
+root.geometry(f"{width}x{height}")
 
 background = 'white'
-canvas_width = 100 + num_room * 400
-canvas_height = 500
+canvas_width = width
+canvas_height = height
 my_canvas = tkinter.Canvas(root, width=canvas_width, height=canvas_height, bg=background)
 my_canvas.pack()
 
-time_mutiplicator = 0.05
+augmentation_ppm = 29
+time_mutiplicator = 0.05 # mean 200 ms ig === 1 min irl with a refresh every 10 ms
+augmentation_ppm *= time_mutiplicator
 
 
 
@@ -47,7 +52,7 @@ class Classroom():
       self.door_open = False
       self.door1 = my_canvas.create_line( 300 + self.decalage, 450, 300 + self.decalage, 350, fill="white")
       self.door2 = my_canvas.create_line( 300 + self.decalage, 450, 400 + self.decalage, 450, fill="black")
-      tkinter.Button(root, text ="Open / Close door", command = self.open_door).place(x= 300 + self.decalage, y= 460)
+      tkinter.Button(root, text ="Open / Close door", command = self.move_door).place(x= 170 + self.decalage, y= 400)
 
       # jauge
       self.green = my_canvas.create_rectangle(70 + self.decalage, 320, 130 + self.decalage, 420, fill='green', outline='green')
@@ -79,7 +84,7 @@ class Classroom():
       self.window_open = not self.window_open
 
 
-   def open_door(self):
+   def move_door(self):
       if not self.door_open:
          self.door1 = my_canvas.create_line( 300 + self.decalage, 450, 400 + self.decalage, 450, fill="white")
          self.door2 = my_canvas.create_line( 300 + self.decalage, 450, 300 + self.decalage, 350, fill="black")
@@ -96,8 +101,9 @@ class Classroom():
       my_canvas.coords( self.white, 70 + self.decalage, 140, 130 + self.decalage, 420 - ppm_mean)
       root.update()
 
-   def ppm_func(self):
+   def ppm_func(self, corridor):
       global time_mutiplicator
+      ppm_before = self.ppm
 
       if self.window_open and self.door_open:
          if self.ppm_start == 0:
@@ -105,13 +111,24 @@ class Classroom():
          self.t += 1 * time_mutiplicator
          self.ppm = (self.ppm_start * numpy.exp(-6.5 * self.t /60)) + (950 * (1 - numpy.exp(-6.5 * self.t /60)))
 
+         ppm_modif = self.ppm - ( ppm_before + augmentation_ppm)
+         ppm_modif = int((ppm_modif + 0.005)*100)/100
+
+         if ppm_modif < 0:
+            corridor.ppm_add(abs(ppm_modif))
+
+
       else:
          self.t = 0   # reset time
          self.ppm_start = 0
-         self.ppm += 29 * time_mutiplicator   # 20ppm/min
+         self.ppm += augmentation_ppm   # 20ppm/min
 
-         if self.window_open or self.door_open:
-            self.ppm -= 10 * time_mutiplicator
+         if self.window_open:
+            self.ppm -= augmentation_ppm / 2
+
+         if self.door_open:
+            self.ppm -= augmentation_ppm / 2
+            corridor.ppm_add(augmentation_ppm / 2)
 
          if self.ppm >= 3000:     # ppm limit
             self.ppm = 3000
@@ -125,27 +142,76 @@ class Classroom():
 
 
 
+class Corridor():
+   def __init__(self, nb_room):
+      self.decalage = nb_room * 400
+
+      my_canvas.create_line( 50 , 650, 50 + self.decalage, 650, fill="red")
+      my_canvas.create_line( 50 + self.decalage, 450, 50 + self.decalage, 650, fill="red")
+      my_canvas.create_line( 50, 450, 50, 501, fill="red")
+      my_canvas.create_line( 50, 600, 50, 650, fill="red")
+      
+
+
+      #  Door
+      self.door_open_c = False
+      self.door1_c = my_canvas.create_line( 50, 600, 50, 500, fill="black")
+      self.door2_c = my_canvas.create_line( 50, 600, 150, 600, fill="white")
+      tkinter.Button(root, text ="Open / Close door", command = self.move_door_c).place(x= 80, y= 520)
+
+
+
+      self.ppm = 500
+      self.display_ppm = my_canvas.create_text( 50 + (self.decalage / 2) , 550, anchor="center", text=self.ppm)
+
+   def move_door_c(self):
+      if not self.door_open_c:
+         self.door1_c = my_canvas.create_line( 50, 600, 50, 500, fill="white")
+         self.door2_c = my_canvas.create_line( 50, 600, 150, 600, fill="black")
+      else:
+         self.door1_c = my_canvas.create_line( 50, 600, 50, 500, fill="black")
+         self.door2_c = my_canvas.create_line( 50, 600, 150, 600, fill="white")
+      self.door_open_c = not self.door_open_c
+
+   def ppm_add(self, add):
+      self.ppm += add / 4
+      my_canvas.itemconfig(self.display_ppm, text= int(self.ppm))
+
+   def ppm_func_c(self):
+      if self.door_open_c:
+         if self.ppm > 700:
+            self.ppm -= 20 * time_mutiplicator
+         elif self.ppm < 700 and self.ppm > 690:
+            self.ppm = 700
 
 
 
 
 
 
-
-
-
-
-for num in range(num_room):
+for num in range(nb_room):
    room_list.append(Classroom(num))
 
+corridor = Corridor(nb_room)
 
 
-def update(room):
+def room_update(room, corridor):
    while True:
 
       start = time.time()
 
-      room.ppm_func()
+      room.ppm_func(corridor)
+
+      end = time.time()
+
+      time.sleep(int(abs(0.01 - (end - start)) * 10000000) / 10000000 )   # reload every 10 ms minus the execution times of the function rounded to 0.0000001 seconds
+
+def corridor_update(corridor):
+   while True:
+
+      start = time.time()
+
+      corridor.ppm_func_c()
 
       end = time.time()
 
@@ -154,8 +220,9 @@ def update(room):
 
 def launch_update_thread():
    for room in room_list:
-      threading.Thread(target=update, args=(room,) ).start()
+      threading.Thread(target=room_update, args=(room, corridor, ) ).start()
 
+threading.Thread(target=corridor_update, args=(corridor, ) ).start()
 threading.Thread(target=launch_update_thread).start()
 
 
