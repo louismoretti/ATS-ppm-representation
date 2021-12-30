@@ -183,6 +183,7 @@ class Corridor():
             self.ppm -= 20 * time_mutiplicator
          elif self.ppm < 700 and self.ppm > 690:
             self.ppm = 700
+         my_canvas.itemconfig(self.display_ppm, text= int(self.ppm))
 
 
 
