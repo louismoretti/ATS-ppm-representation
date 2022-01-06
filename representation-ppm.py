@@ -154,36 +154,39 @@ class Corridor():
 
 
       #  Door
-      self.door_open_c = False
-      self.door1_c = my_canvas.create_line( 50, 600, 50, 500, fill="black")
-      self.door2_c = my_canvas.create_line( 50, 600, 150, 600, fill="white")
-      tkinter.Button(root, text ="Open / Close door", command = self.move_door_c).place(x= 80, y= 520)
+      self.door_open = False
+      self.door1 = my_canvas.create_line( 50, 600, 50, 500, fill="black")
+      self.door2 = my_canvas.create_line( 50, 600, 150, 600, fill="white")
+      tkinter.Button(root, text ="Open / Close door", command = self.move_door).place(x= 80, y= 520)
 
 
 
       self.ppm = 500
       self.display_ppm = my_canvas.create_text( 50 + (self.decalage / 2) , 550, anchor="center", text=self.ppm)
 
-   def move_door_c(self):
+   def move_door(self):
       if not self.door_open_c:
-         self.door1_c = my_canvas.create_line( 50, 600, 50, 500, fill="white")
-         self.door2_c = my_canvas.create_line( 50, 600, 150, 600, fill="black")
+         self.door1 = my_canvas.create_line( 50, 600, 50, 500, fill="white")
+         self.door2 = my_canvas.create_line( 50, 600, 150, 600, fill="black")
       else:
-         self.door1_c = my_canvas.create_line( 50, 600, 50, 500, fill="black")
-         self.door2_c = my_canvas.create_line( 50, 600, 150, 600, fill="white")
-      self.door_open_c = not self.door_open_c
+         self.door1 = my_canvas.create_line( 50, 600, 50, 500, fill="black")
+         self.door2 = my_canvas.create_line( 50, 600, 150, 600, fill="white")
+      self.door_open = not self.door_open_c
 
    def ppm_add(self, add):
       self.ppm += add / 4
       my_canvas.itemconfig(self.display_ppm, text= int(self.ppm))
 
-   def ppm_func_c(self):
-      if self.door_open_c:
-         if self.ppm > 700:
-            self.ppm -= 20 * time_mutiplicator
-         elif self.ppm < 700 and self.ppm > 690:
-            self.ppm = 700
-         my_canvas.itemconfig(self.display_ppm, text= int(self.ppm))
+   def ppm_func(self):
+      if self.ppm == 1500:
+         self.ppm = 1500
+      else: 
+         if self.door_open:
+            if self.ppm > 700:
+               self.ppm -= 20 * time_mutiplicator
+            elif self.ppm < 700 and self.ppm > 690:
+               self.ppm = 700
+            my_canvas.itemconfig(self.display_ppm, text= int(self.ppm))
 
 
 
@@ -212,7 +215,7 @@ def corridor_update(corridor):
 
       start = time.time()
 
-      corridor.ppm_func_c()
+      corridor.ppm_func()
 
       end = time.time()
 
